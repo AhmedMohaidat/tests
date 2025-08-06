@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<extentreports>
+
+    <!-- Report name and location -->
+    <extent>
+        <reportName>Sample Extent Report</reportName>
+        <reportPath>src/main/resources/Reports/test.html</reportPath>
+        <displayOrder>OLDEST_FIRST</displayOrder>
+    </extent>
+
+    <!-- HTML reporter configuration -->
+    <html>
+        <css>src/main/java/Core/report/custom-css.css</css> <!-- Specify the name of your custom CSS file -->
+    </html>
+</extentreports>

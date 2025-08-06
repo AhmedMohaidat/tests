@@ -1,0 +1,100 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.report-name {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+
+.pass {
+    background-color: #4caf50;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.fail {
+    background-color: #f44336;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.skip {
+    background-color: #ff9800;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+
+
+
+.test-step {
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    border: 1px solid #e0e0e0;
+
+    background-color: #fff;
+
+}
+
+.log {
+    padding: 5px;
+    border: 1px solid #d3d3d3;
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+}
+
+
+.test-status {
+    font-weight: bold;
+}
+
+.test-description {
+
+    margin-top: 10px;
+
+    font-style: italic;
+
+}

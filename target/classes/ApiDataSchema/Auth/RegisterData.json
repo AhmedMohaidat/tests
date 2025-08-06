@@ -1,0 +1,14 @@
+{
+  "endPoint": "api/Auth/register",
+  "headers": {
+    "accept": "*/*",
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "email": "",
+    "password": "Pass123@",
+    "firstName": "",
+    "lastName": "",
+    "role": 1
+  }
+}

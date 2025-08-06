@@ -1,0 +1,7 @@
+{
+  "endPoint": "api/Deposit",
+  "headers": {
+    "accept": "*/*",
+    "Content-Type": "application/json"
+  }
+}

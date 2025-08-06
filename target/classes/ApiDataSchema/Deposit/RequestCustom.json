@@ -1,0 +1,11 @@
+{
+  "endPoint": "api/Deposit/request-custom",
+  "headers": {
+    "accept": "*/*",
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "amount": 1,
+    "durationInDays": 0
+  }
+}

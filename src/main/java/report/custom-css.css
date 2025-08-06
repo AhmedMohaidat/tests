@@ -1,0 +1,101 @@
+/* Customize the overall report styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Customize the report container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Customize the report title */
+.report-name {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Customize the test status badges */
+.pass {
+    background-color: #4caf50; /* Green for passed tests */
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.fail {
+    background-color: #f44336; /* Red for failed tests */
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+.skip {
+    background-color: #ff9800; /* Orange for skipped tests */
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+}
+
+/* Customize table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+
+/* Customize test step styles */
+
+.test-step {
+
+    padding: 10px;
+
+    margin-bottom: 10px;
+
+    border: 1px solid #e0e0e0;
+
+    background-color: #fff;
+
+}
+/* Customize test log styles */
+.log {
+    padding: 5px;
+    border: 1px solid #d3d3d3;
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+}
+
+/* Customize the test status labels in test details */
+.test-status {
+    font-weight: bold;
+}
+
+/* Customize the test description in test details */
+.test-description {
+
+    margin-top: 10px;
+
+    font-style: italic;
+
+}
