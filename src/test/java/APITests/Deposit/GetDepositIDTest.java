@@ -12,4 +12,14 @@ public class GetDepositIDTest {
         depositId = new GetDepositIDAPI();
         depositId.getDepositsByID();
     }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorizedUser() {
+
+    }
+
+    @Test(description = "Deposit not found")
+    public void notFoundDeposit() {
+
+    }
 }

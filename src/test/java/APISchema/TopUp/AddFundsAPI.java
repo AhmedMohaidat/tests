@@ -18,11 +18,11 @@ public class AddFundsAPI extends ApiTestBase {
         accept = (String) headers.get("accept");
         contentType = (String) headers.get("Content-Type");
 
-        // Get token from LoginAPI (works with both real and mock)
         String token = loginAPI.submitRequest();
         auth = "Bearer " + token;
 
         Map body = (Map) data.get("body");
+        body.put("amount", 5);
         requestBody = returnValueAsString(body);
 
         requestInfo.put("endPoint", endPoint);
@@ -31,21 +31,13 @@ public class AddFundsAPI extends ApiTestBase {
         requestInfo.put("Authorization", auth);
         requestInfo.put("requestBody", requestBody);
 
-        // Debug logging
-        LOGGER.info("Using baseUrl: {}", baseUrl);
-        LOGGER.info("Endpoint: {}", endPoint);
-        LOGGER.info("Token: {}", token);
     }
 
     public void addFunds() {
         setFundsData();
         Response response = sendRequest(baseUrl, "POST", requestInfo);
-
-        // Enhanced logging
-        LOGGER.info("TopUp Response Status: {}", response.statusCode());
-        LOGGER.info("TopUp Response Body: {}", response.asPrettyString());
-
         System.out.println("Status Code: " + response.statusCode());
         System.out.println("Response: " + response.asPrettyString());
+
     }
 }

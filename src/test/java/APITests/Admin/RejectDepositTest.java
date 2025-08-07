@@ -12,4 +12,28 @@ public class RejectDepositTest {
         rejectDeposit = new RejectDepositAPI();
         rejectDeposit.submitRequest();
     }
+
+    @Test(description = "Invalid rejection request")
+    public void invalidData() {
+        rejectDeposit = new RejectDepositAPI();
+
+    }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorized() {
+        rejectDeposit = new RejectDepositAPI();
+
+    }
+
+    @Test(description = "User does not have admin privileges")
+    public void notAdmin() {
+        rejectDeposit = new RejectDepositAPI();
+
+    }
+
+    @Test(description = "Custom deposit request not found")
+    public void notFound() {
+        rejectDeposit = new RejectDepositAPI();
+
+    }
 }

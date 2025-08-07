@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Wadaie">
+
+    <listeners>
+        <listener class-name="report.WebTestListener"/>
+    </listeners>
+
+    <test name="Login Test">
+        <classes>
+            <class name="APITests.Auth.LoginTest"/>
+        </classes>
+    </test>
+    <test name="Register Test">
+        <classes>
+            <class name="APITests.Auth.RegisterTest"/>
+        </classes>
+    </test>
+    <test name="Update User Test">
+        <classes>
+            <class name="APITests.Auth.UpdateUserTest"/>
+        </classes>
+    </test>
+
+</suite>

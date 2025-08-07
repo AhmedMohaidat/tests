@@ -1,15 +1,16 @@
 package base.MockServer;
 
+import base.TestDataBase.TestDataSetBase;
+import io.restassured.RestAssured;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
-import base.TestDataBase.TestDataSetBase;
-import io.restassured.RestAssured;
 
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.model.StringBody.exact;
 
 public class MockServerConfig extends TestDataSetBase {
 
@@ -48,9 +49,6 @@ public class MockServerConfig extends TestDataSetBase {
         }
     }
 
-    /**
-     * Add a custom mock expectation
-     */
     public void addMockExpectation(HttpRequest request, HttpResponse response) {
         if (mockServer != null && mockServer.isRunning()) {
             mockServer.when(request).respond(response);
@@ -59,9 +57,6 @@ public class MockServerConfig extends TestDataSetBase {
         }
     }
 
-    /**
-     * Setup default mocks that are common across all tests
-     */
     private void setupDefaultMocks() {
         // Health check endpoint
         addMockExpectation(
@@ -74,9 +69,6 @@ public class MockServerConfig extends TestDataSetBase {
         );
     }
 
-    /**
-     * Clear all mock expectations and setup fresh defaults
-     */
     public void clearAndResetMocks() {
         if (mockServer != null && mockServer.isRunning()) {
             mockServer.reset();
@@ -88,150 +80,300 @@ public class MockServerConfig extends TestDataSetBase {
     // ========== TOP UP MOCKS ==========
 
     public void setupTopUpMocks() {
-        // AddFunds - Success response (matching your TopUp.json: "api/TopUp")
+        System.out.println("Setting up TopUp mocks...");
+
+        // Simplified approach - handle most common cases first
+
+        // 1. SUCCESS CASE - Valid request with Authorization (catch-all for valid requests)
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Content-Type", "application/json")
+                        .withHeader("Authorization", "Bearer .*"),
+                response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"message\": \"Account Successfully Topped Up, New Balance is 1500\"}")
+        );
+
+        // Handle endpoint without leading slash - SUCCESS
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("api/TopUp")
+                        .withHeader("Content-Type", "application/json")
+                        .withHeader("Authorization", "Bearer .*"),
+                response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"message\": \"Account Successfully Topped Up, New Balance is 1500\"}")
+        );
+
+        System.out.println("TopUp success mocks setup completed");
+    }
+
+    // Separate method for error scenarios
+    public void setupTopUpValidationMocks() {
+        System.out.println("Setting up TopUp validation mocks...");
+
+        // Clear existing mocks first and re-setup essentials
+        if (mockServer != null && mockServer.isRunning()) {
+            mockServer.reset();
+            setupDefaultMocks();
+            setupAuthMocks(); // Re-setup auth mocks
+        }
+
+        // Simple approach - use exact body matching instead of regex
+
+        // 1. Exact match for "x" amount
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{\"amount\":\"x\"}")),
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Non-numeric amount\"}")
+        );
+
+        // 2. Alternative format with spaces
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{ \"amount\" : \"x\" }")),
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Non-numeric amount\"}")
+        );
+
+        // 3. Handle without leading slash - same patterns
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{\"amount\":\"x\"}")),
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Non-numeric amount\"}")
+        );
+
+        // 4. Other common invalid values
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{\"amount\":\"abc\"}")),
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Non-numeric amount\"}")
+        );
+
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{\"amount\":\"0\"}")), // Zero as string
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Amount cannot be zero\"}")
+        );
+
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*")
+                        .withBody(exact("{\"amount\":0}")), // Zero as number
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request - Amount cannot be zero\"}")
+        );
+
+        // 5. SUCCESS - Fallback for any other requests with valid authorization
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "Bearer .*"),
+                response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"message\": \"Account Successfully Topped Up, New Balance is 1500\"}")
+        );
+
+        // Handle without leading slash - success fallback
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("api/TopUp")
+                        .withHeader("Authorization", "Bearer .*"),
+                response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"message\": \"Account Successfully Topped Up, New Balance is 1500\"}")
+        );
+
+        System.out.println("TopUp validation mocks setup completed");
+        System.out.println("DEBUG: Using exact body matching for reliability");
+    }
+
+    public void setupTopUpErrorMocks() {
+        System.out.println("Setting up TopUp error mocks...");
+
+        // 2. UNAUTHORIZED CASE - Missing or invalid Authorization header
         addMockExpectation(
                 request()
                         .withMethod("POST")
                         .withPath("/api/TopUp")
                         .withHeader("Content-Type", "application/json"),
+                // No Authorization header or invalid token
                 response()
-                        .withStatusCode(200)
+                        .withStatusCode(401)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"transactionId\":\"TXN_" + System.currentTimeMillis() + "\","
-                                + "\"amount\":500,"
-                                + "\"previousBalance\":1000,"
-                                + "\"newBalance\":1500,"
-                                + "\"status\":\"SUCCESS\","
-                                + "\"timestamp\":\"" + java.time.Instant.now().toString() + "\","
-                                + "\"message\":\"Funds added successfully\""
-                                + "}")
+                        .withBody("{\"error\": \"Unauthorized\"}")
         );
 
-        // Handle endpoint without leading slash (in case your framework sends it differently)
+        // Handle endpoint without leading slash - UNAUTHORIZED
         addMockExpectation(
                 request()
                         .withMethod("POST")
                         .withPath("api/TopUp")
                         .withHeader("Content-Type", "application/json"),
                 response()
-                        .withStatusCode(200)
+                        .withStatusCode(401)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"transactionId\":\"TXN_" + System.currentTimeMillis() + "\","
-                                + "\"amount\":500,"
-                                + "\"status\":\"SUCCESS\","
-                                + "\"message\":\"Funds added successfully\""
-                                + "}")
+                        .withBody("{\"error\": \"Unauthorized\"}")
         );
 
-        // Get TopUp balance
-        addMockExpectation(
-                request()
-                        .withMethod("GET")
-                        .withPath("/api/TopUp/balance")
-                        .withHeader("Authorization", "Bearer .*"),
-                response()
-                        .withStatusCode(200)
-                        .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"currentBalance\":1500,"
-                                + "\"currency\":\"USD\","
-                                + "\"availableBalance\":1450,"
-                                + "\"pendingAmount\":50"
-                                + "}")
-        );
-
-        // Get TopUp history
-        addMockExpectation(
-                request()
-                        .withMethod("GET")
-                        .withPath("/api/TopUp/history")
-                        .withHeader("Authorization", "Bearer .*"),
-                response()
-                        .withStatusCode(200)
-                        .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"topUps\":["
-                                + "{"
-                                + "\"id\":\"TOP_001\","
-                                + "\"amount\":200,"
-                                + "\"timestamp\":\"2024-01-15T10:30:00Z\","
-                                + "\"status\":\"COMPLETED\","
-                                + "\"method\":\"CREDIT_CARD\""
-                                + "},"
-                                + "{"
-                                + "\"id\":\"TOP_002\","
-                                + "\"amount\":300,"
-                                + "\"timestamp\":\"2024-01-14T15:45:00Z\","
-                                + "\"status\":\"COMPLETED\","
-                                + "\"method\":\"BANK_TRANSFER\""
-                                + "}"
-                                + "],"
-                                + "\"totalCount\":2,"
-                                + "\"totalAmount\":500"
-                                + "}")
-        );
+        System.out.println("TopUp error mocks setup completed");
     }
 
-    public void setupTopUpErrorMocks() {
-        // Invalid amount (0 or negative)
+    // Method to setup specific test scenarios
+    public void setupTopUpTestScenario(String scenario) {
+        System.out.println("Setting up TopUp scenario: " + scenario);
+
+        switch (scenario.toLowerCase()) {
+            case "success":
+                setupTopUpMocks();
+                break;
+            case "unauthorized":
+                setupTopUpUnauthorizedMocks();
+                break;
+            case "validation":
+            case "badrequest":
+            case "invalid":
+                // For now, just use the simple success mocks to avoid hanging
+                setupTopUpMocks();
+                break;
+            default:
+                setupTopUpMocks(); // Default to success
+        }
+    }
+
+    public void setupTopUpUnauthorizedMocks() {
+        System.out.println("Setting up TopUp unauthorized mocks...");
+
+        // Clear existing mocks first and re-setup essentials
+        if (mockServer != null && mockServer.isRunning()) {
+            mockServer.reset();
+            setupDefaultMocks();
+            setupAuthMocks(); // Re-setup auth mocks
+        }
+
+        // 1. No Authorization header at all
         addMockExpectation(
                 request()
                         .withMethod("POST")
                         .withPath("/api/TopUp")
-                        .withBody(".*\"amount\"\\s*:\\s*(0|-\\d+).*"),
+                        .withHeader("Content-Type", "application/json"),
+                // No Authorization header specified
                 response()
-                        .withStatusCode(400)
+                        .withStatusCode(401)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"error\":\"INVALID_AMOUNT\","
-                                + "\"message\":\"Amount must be greater than 0\","
-                                + "\"code\":\"TOPUP_002\","
-                                + "\"minAmount\":1,"
-                                + "\"maxAmount\":10000"
-                                + "}")
+                        .withBody("{\"error\": \"Unauthorized\"}")
         );
 
-        // Large amount - insufficient balance
+        // Handle without leading slash
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("api/TopUp")
+                        .withHeader("Content-Type", "application/json"),
+                response()
+                        .withStatusCode(401)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Unauthorized\"}")
+        );
+
+        // 2. Invalid Authorization header
         addMockExpectation(
                 request()
                         .withMethod("POST")
                         .withPath("/api/TopUp")
-                        .withBody(".*\"amount\"\\s*:\\s*(10000|9999).*"),
+                        .withHeader("Authorization", "Bearer invalid-token"),
                 response()
-                        .withStatusCode(400)
+                        .withStatusCode(401)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"error\":\"INSUFFICIENT_BALANCE\","
-                                + "\"message\":\"Insufficient funds for this transaction\","
-                                + "\"currentBalance\":100,"
-                                + "\"requestedAmount\":10000,"
-                                + "\"code\":\"TOPUP_001\""
-                                + "}")
+                        .withBody("{\"error\": \"Unauthorized\"}")
         );
 
-        // Unauthorized access (missing or invalid token)
+        // 3. Malformed Authorization header
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("/api/TopUp")
+                        .withHeader("Authorization", "InvalidFormat"),
+                response()
+                        .withStatusCode(401)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Unauthorized\"}")
+        );
+
+        System.out.println("TopUp unauthorized mocks setup completed");
+    }
+
+    private void setupTopUpBadRequestMocks() {
+        // Override with bad request response for any TopUp request
         addMockExpectation(
                 request()
                         .withMethod("POST")
                         .withPath("/api/TopUp"),
                 response()
-                        .withStatusCode(401)
+                        .withStatusCode(400)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{"
-                                + "\"error\":\"Unauthorized\","
-                                + "\"message\":\"Authentication required\","
-                                + "\"code\":\"AUTH_REQUIRED\""
-                                + "}")
+                        .withBody("{\"error\": \"Bad Request\"}")
+        );
+
+        addMockExpectation(
+                request()
+                        .withMethod("POST")
+                        .withPath("api/TopUp"),
+                response()
+                        .withStatusCode(400)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{\"error\": \"Bad Request\"}")
         );
     }
 
     // ========== AUTH MOCKS ==========
+
     public void setupAuthMocks() {
         System.out.println("Setting up auth mocks...");
 
-
+        // Specific login with exact credentials
         addMockExpectation(
                 request()
                         .withMethod("POST")
@@ -247,7 +389,7 @@ public class MockServerConfig extends TestDataSetBase {
                                 + "}")
         );
 
-        // Also add a broader mock without body matching
+        // General login mock
         addMockExpectation(
                 request()
                         .withMethod("POST")
@@ -331,9 +473,6 @@ public class MockServerConfig extends TestDataSetBase {
 
     // ========== UTILITY METHODS ==========
 
-    /**
-     * Verify if a specific endpoint was called
-     */
     public boolean wasEndpointCalled(String method, String path) {
         if (mockServer != null && mockServer.isRunning()) {
             return mockServer.retrieveRecordedRequests(
@@ -345,17 +484,22 @@ public class MockServerConfig extends TestDataSetBase {
         return false;
     }
 
-    /**
-     * Get all recorded requests for debugging
-     */
     public void printRecordedRequests() {
         if (mockServer != null && mockServer.isRunning()) {
             var requests = mockServer.retrieveRecordedRequests(null);
             LOGGER.info("Recorded requests count: {}", requests.length);
+            System.out.println("=== MOCK SERVER DEBUG ===");
+            System.out.println("Total recorded requests: " + requests.length);
             for (var req : requests) {
+                System.out.println("Method: " + req.getMethod());
+                System.out.println("Path: " + req.getPath());
+                System.out.println("Headers: " + req.getHeaders());
+                System.out.println("Body: " + req.getBodyAsString());
+                System.out.println("------------------------");
                 LOGGER.info("Request: {} {} - Body: {}",
                         req.getMethod(), req.getPath(), req.getBodyAsString());
             }
+            System.out.println("=========================");
         }
     }
 
@@ -373,7 +517,6 @@ public class MockServerConfig extends TestDataSetBase {
     private void configureRestAssured() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = mockServerPort;
-//        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     // ========== GETTERS ==========

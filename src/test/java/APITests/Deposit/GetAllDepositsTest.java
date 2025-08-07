@@ -12,4 +12,10 @@ public class GetAllDepositsTest {
         getDeposits = new GetAllDepositsAPI();
         getDeposits.getAllDeposits();
     }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorizedUser() {
+
+    }
+
 }

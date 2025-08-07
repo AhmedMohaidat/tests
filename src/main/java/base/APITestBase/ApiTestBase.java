@@ -12,14 +12,16 @@ import io.restassured.http.Header;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.testng.annotations.AfterSuite;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import report.ExtentManager;
+import report.WebTestListener;
 
 import java.io.File;
 import java.util.*;
 
-//@Listeners({WebTestListener.class})
+@Listeners({WebTestListener.class})
 public class ApiTestBase extends TestDataSetBase {
 
     RequestSpecification httpRequest;

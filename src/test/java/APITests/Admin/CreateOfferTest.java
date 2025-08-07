@@ -12,4 +12,22 @@ public class CreateOfferTest {
         create = new CreateOfferAPI();
         create.submitOffer();
     }
+
+    @Test(description = "Invalid offer data")
+    public void invalidData() {
+        create = new CreateOfferAPI();
+
+    }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorized() {
+        create = new CreateOfferAPI();
+
+    }
+
+    @Test(description = "User does not have admin privileges")
+    public void notAdmin() {
+        create = new CreateOfferAPI();
+
+    }
 }

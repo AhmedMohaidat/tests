@@ -8,8 +8,8 @@ public class ExtentManager extends TestDataSetBase {
 
     static DateHelper date = new DateHelper();
     static private ExtentReports extent;
-    public static String reportFileName = date.getCurrentDate("yyyy-MM-dd") + "-" + testConfig.get("AUT") + "-Test-Report-" + System.currentTimeMillis() + ".html";
-    public static String path = "src/main/resources/Reports/" + date.getCurrentDate("yyyy-MM-dd") + "/";
+    public static String reportFileName = "Test-Report-" + System.currentTimeMillis() + ".html";
+    public static String path = System.getProperty("user.dir") + "/src/main/resources/Reports/" + date.getCurrentDate("yyyy-MM-dd") + "/";
 
 
     public static String getReportPath() {

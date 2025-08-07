@@ -12,4 +12,14 @@ public class CrowdEnrollTest {
         enrollAPI = new CrowdEnrollAPI();
         enrollAPI.submitRequest();
     }
+
+    @Test(description = "Invalid enrollment request")
+    public void invalidData() {
+
+    }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorizedUser() {
+
+    }
 }

@@ -12,4 +12,28 @@ public class UpdateOfferTest {
         updateOffer = new UpdateOfferAPI();
         updateOffer.updateOffer();
     }
+
+    @Test(description = "Invalid update data")
+    public void invalidData() {
+        updateOffer = new UpdateOfferAPI();
+
+    }
+
+    @Test(description = "User not authenticated")
+    public void unAuthorized() {
+        updateOffer = new UpdateOfferAPI();
+
+    }
+
+    @Test(description = "User does not have admin privileges")
+    public void notAdmin() {
+        updateOffer = new UpdateOfferAPI();
+
+    }
+
+    @Test(description = "Offer not found")
+    public void notFound() {
+        updateOffer = new UpdateOfferAPI();
+
+    }
 }
