@@ -39,7 +39,6 @@ public class LoginAPI extends ApiTestBase {
 
         JsonPath jsonPath = new JsonPath(response.asPrettyString());
         String token = jsonPath.getString("token");
-
         System.out.println(token);
 
         return token;

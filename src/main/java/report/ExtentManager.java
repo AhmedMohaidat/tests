@@ -19,9 +19,9 @@ public class ExtentManager extends TestDataSetBase {
     public static ExtentReports createInstance() {
 
         extent = new ExtentReports(getReportPath());
-        extent.addSystemInfo("AUTHOR", "ESNAD - Test Automation Team");
+        extent.addSystemInfo("AUTHOR", "Ahmad Muhaidat");
         extent.addSystemInfo("ENVIRONMENT", "<b><font color='blue'>" + testConfig.get("baseUrl") + "<font/></b>");
-        extent.addSystemInfo("POWERED BY:", "<b>ESNAD</b>");
+        extent.addSystemInfo("POWERED BY:", "<b>Wadaie</b>");
 //        extent.loadConfig(new File("src/main/java/Core/report/extent-report.xml"));
 
         return extent;

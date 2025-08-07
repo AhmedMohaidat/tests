@@ -1,5 +1,7 @@
 package helpers;
 
+import com.github.javafaker.Faker;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -41,6 +43,20 @@ public class DateHelper {
         //System.out.println(dateFormat.format(currentDatePlus));
 
         return dateFormat.format(currentDatePlus);
+    }
+
+    public String generateFutureISODate() {
+        Faker faker = new Faker();
+
+        // Calculate future date using Calendar (avoiding TimeUnit)
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, 365); // Add 365 days
+        Date futureLimit = cal.getTime();
+
+        // Generate random date between now and future limit
+        Date futureDate = faker.date().between(new Date(), futureLimit);
+
+        return futureDate.toInstant().toString();
     }
 
     public String getRequiredDayDate(int days, String dateFormat) {

@@ -5,7 +5,7 @@
     "Content-Type": "application/json"
   },
   "body": {
-    "amount": 1,
-    "durationInDays": 0
+    "amount": 10,
+    "durationInDays": 30
   }
 }

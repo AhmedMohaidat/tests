@@ -1,0 +1,10 @@
+{
+  "endPoint": "api/TopUp",
+  "headers": {
+    "accept": "*/*",
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "amount": 0
+  }
+}
