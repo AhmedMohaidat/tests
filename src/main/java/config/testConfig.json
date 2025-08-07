@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://localhost:5000",
-  "mockUrl": "",
+  "mockUrl": "http://localhost:1080",
   "thirdParty": "real",
   "retries": 0,
   "sendEmail": false,

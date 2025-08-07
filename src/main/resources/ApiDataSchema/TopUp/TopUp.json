@@ -5,6 +5,6 @@
     "Content-Type": "application/json"
   },
   "body": {
-    "amount": 0
+    "amount": 500
   }
 }

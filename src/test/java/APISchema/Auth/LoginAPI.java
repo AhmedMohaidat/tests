@@ -31,15 +31,30 @@ public class LoginAPI extends ApiTestBase {
 
     public String submitRequest(){
         setLoginData();
+
+        // DEBUG: Print what we're about to send
+        System.out.println("=== LOGIN DEBUG ===");
+        System.out.println("baseUrl: " + baseUrl);
+        System.out.println("endPoint: " + endPoint);
+        System.out.println("Full URL will be constructed by ApiTestBase");
+        System.out.println("requestBody: " + requestBody);
+        System.out.println("==================");
+
         Response response = sendRequest(
                 baseUrl,
                 "POST",
                 requestInfo
         );
 
+        System.out.println("=== LOGIN RESPONSE ===");
+        System.out.println("Login Response Status: " + response.statusCode());
+        System.out.println("Login Response Body: " + response.asPrettyString());
+        System.out.println("Response Headers: " + response.headers());
+        System.out.println("=====================");
+
         JsonPath jsonPath = new JsonPath(response.asPrettyString());
         String token = jsonPath.getString("token");
-        System.out.println(token);
+        System.out.println("Extracted token: " + token);
 
         return token;
     }
