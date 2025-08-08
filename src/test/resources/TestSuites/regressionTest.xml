@@ -50,7 +50,7 @@
         </classes>
     </test>
 
-    <!--    Admin APIs-->
+    <!--    Deposit APIs-->
     <test name="Get Available Deposits">
         <classes>
             <class name="APITests.Deposit.AvailableDepositTest"/>
@@ -61,7 +61,16 @@
             <class name="APITests.Deposit.GetAllDepositsTest"/>
         </classes>
     </test>
-
+    <test name="Get Deposit By ID">
+        <classes>
+            <class name="APITests.Deposit.GetDepositIDTest"/>
+        </classes>
+    </test>
+    <test name="Request Custom Deposit">
+        <classes>
+            <class name="APITests.Deposit.RequestDepositTest"/>
+        </classes>
+    </test>
 
 
 </suite>

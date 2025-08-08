@@ -11,7 +11,6 @@ public class AvailableDepositTest extends Precondition {
 
     @Test(description = "Get Available Deposits Successfully")
     public void getAvailableDeposits() {
-        setOfferId();
         Map result = available.getAvailableDeposit(token);
 
         int statusCode = (int) result.get("statusCode");

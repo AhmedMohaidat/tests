@@ -38,4 +38,18 @@ public class GetAllDepositsAPI extends ApiTestBase {
         }
         return result;
     }
+
+    public Map getFirstDepositId(String token) {
+        setAllDepositsData(token);
+        Response response = sendRequest(baseUrl, "GET", requestInfo);
+        JsonPath jsonPath = new JsonPath(response.asPrettyString());
+        Map result = new HashMap();
+        try {
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("depositId", jsonPath.getInt("[0].id"));
+        } catch (Exception exception) {
+        }
+        return result;
+    }
 }

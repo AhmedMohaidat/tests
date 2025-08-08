@@ -35,6 +35,7 @@ public class ApiTestBase extends TestDataSetBase {
     public String username;
     public String password;
     public String otp;
+
     protected Faker faker = new Faker();
     public Map requestInfo = new HashMap();
 
