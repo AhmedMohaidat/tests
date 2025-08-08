@@ -31,6 +31,9 @@ public class Precondition extends ApiTestBase {
         rejectDeposit = new RejectDepositAPI();
 
         token = loginAPI.submitRequest();
-        offerId = (int) available.getFirstOfferId(token).get("offerId");
+        try {
+            offerId = (int) available.getFirstOfferId(token).get("offerId");
+        }catch (Exception exception){}
+
     }
 }

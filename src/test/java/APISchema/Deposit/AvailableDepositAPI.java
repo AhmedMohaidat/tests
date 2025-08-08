@@ -5,6 +5,7 @@ import base.APITestBase.ApiTestBase;
 import helpers.ReadWriteHelper;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.testng.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class AvailableDepositAPI extends ApiTestBase {
     public Map getFirstOfferId(String token){
         setAvailableData(token);
         Response response = sendRequest(baseUrl, "GET", requestInfo);
+        System.out.println(response.asPrettyString());
         JsonPath jsonPath = new JsonPath(response.asPrettyString());
         Map result = new HashMap();
         try{
@@ -49,6 +51,7 @@ public class AvailableDepositAPI extends ApiTestBase {
             result.put("endPoint", endPoint);
             result.put("offerId", jsonPath.getInt("crowdDepositOffers[0].id"));
         }catch (Exception exception){
+            Assert.fail("No deposit offers found: " + response.asPrettyString());
         }
 
         return result;
