@@ -71,6 +71,11 @@
             <class name="APITests.Deposit.RequestDepositTest"/>
         </classes>
     </test>
+    <test name="Enroll in Crowd Deposit">
+        <classes>
+            <class name="APITests.Deposit.CrowdEnrollTest"/>
+        </classes>
+    </test>
 
 
 </suite>

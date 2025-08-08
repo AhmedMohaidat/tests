@@ -1,406 +1,391 @@
-# API Testing Mocking Strategy Documentation
+# API Mocking Strategy Guide
 
 ## Table of Contents
 1. [Overview](#overview)
 2. [Architecture](#architecture)
-3. [Implementation](#implementation)
-4. [Configuration](#configuration)
-5. [Usage Examples](#usage-examples)
-6. [Best Practices](#best-practices)
+3. [Configuration](#configuration)
+4. [Mock Setup Strategies](#mock-setup-strategies)
+5. [Best Practices](#best-practices)
+6. [Usage Guidelines](#usage-guidelines)
 7. [Troubleshooting](#troubleshooting)
-8. [Maintenance](#maintenance)
+8. [Contributing](#contributing)
 
 ## Overview
 
-### Purpose
-This document outlines the mocking strategy implemented for API regression testing, enabling:
-- **Isolated Testing**: Tests run independently of external services
-- **Faster Execution**: No network latency or service dependencies
-- **Reliable Results**: Consistent responses regardless of external service status
-- **Cost Efficiency**: Reduced load on real services during development/testing
+This document outlines our API mocking strategy using MockServer to enable reliable, fast, and independent API testing. Our framework supports both real API testing and mocked API testing through configuration switches.
 
-### Key Benefits
-- ✅ **Deterministic**: Same input always produces same output
-- ✅ **Fast**: Local mock server responses in milliseconds
-- ✅ **Isolated**: No dependency on external services
-- ✅ **Flexible**: Easy to simulate error conditions
-- ✅ **Maintainable**: Centralized mock configuration
+### Benefits of Our Mocking Strategy
+- **Environment Independence**: Tests run without external API dependencies
+- **Consistent Response Times**: Predictable performance for reliable test execution
+- **Scenario Control**: Easy simulation of edge cases and error conditions
+- **Parallel Execution**: No conflicts with shared test data
+- **Development Velocity**: Faster feedback loops during development
 
 ## Architecture
 
-### High-Level Architecture
+### Component Overview
 ```
-Test Suite
+TestDataSetBase (Base Configuration)
     ↓
-TestDataSetBase (Config Management)
+MockServerConfig (Mock Management)
     ↓
-MockServerConfig (Mock Server Control)
-    ↓
-MockServer (Port 1080)
-    ↓
-API Classes (LoginAPI, AddFundsAPI, etc.)
+API Test Classes (Test Implementation)
 ```
 
-### Component Responsibilities
-
-| Component | Responsibility |
-|-----------|----------------|
-| `TestDataSetBase` | Configuration management, environment detection |
-| `MockServerConfig` | Mock server lifecycle, mock setup, request/response definitions |
-| `MockServer` | HTTP server simulation, request matching, response serving |
-| `API Classes` | API request construction, response handling |
-
-## Implementation
-
-### Core Components
+### Key Components
 
 #### 1. TestDataSetBase
-```java
-// Automatically switches between real and mock based on configuration
-public TestDataSetBase() {
-    thirdParty = (String) testConfig.get("thirdParty");
-    baseUrl = (String) testConfig.get("baseUrl");
-    if (thirdParty.equalsIgnoreCase("mock")){
-        baseUrl = (String) testConfig.get("mockUrl");
-    }
-}
-```
+- **Purpose**: Base configuration and mock server lifecycle management
+- **Responsibilities**:
+    - Initialize configuration from `testConfig.json`
+    - Start/stop mock server based on `thirdParty` setting
+    - Manage common test data and utilities
 
-#### 2. MockServerConfig Structure
-```java
-public class MockServerConfig extends TestDataSetBase {
-    // Server Management
-    public void startMockServer()
-    public void stopMockServer()
-    public void resetMockServer()
-    
-    // Mock Setup
-    public void setupAuthMocks()
-    public void setupTopUpMocks()
-    public void setupTopUpErrorMocks()
-    
-    // Utilities
-    public void addMockExpectation(HttpRequest, HttpResponse)
-    public boolean wasEndpointCalled(String method, String path)
-    public void printRecordedRequests()
-}
-```
+#### 2. MockServerConfig
+- **Purpose**: Centralized mock server configuration and management
+- **Responsibilities**:
+    - Mock server startup/shutdown
+    - Endpoint mock setup and management
+    - Request/response pattern definitions
+    - Debug utilities for troubleshooting
 
-#### 3. Mock Response Patterns
-```java
-// Success Response Pattern
-response()
-    .withStatusCode(200)
-    .withContentType(MediaType.APPLICATION_JSON)
-    .withBody(jsonResponseBody)
-
-// Error Response Pattern  
-response()
-    .withStatusCode(400)
-    .withContentType(MediaType.APPLICATION_JSON)
-    .withBody("{\"error\":\"ERROR_CODE\",\"message\":\"Error description\"}")
-```
+#### 3. Configuration Switch
+Uses `testConfig.json` to control execution mode:
+- `"thirdParty": "real"` → Tests run against real APIs
+- `"thirdParty": "mock"` → Tests run against MockServer
 
 ## Configuration
 
-### Environment Configuration (`testConfig.json`)
-
-#### For Mock Testing
+### testConfig.json Structure
 ```json
 {
   "baseUrl": "http://localhost:5000",
   "mockUrl": "http://localhost:1080", 
-  "thirdParty": "mock",
+  "thirdParty": "mock",  // "real" or "mock"
   "retries": 0,
-  "sendEmail": false,
-  "recipients": ["mohaidatahmed@gmail.com"]
+  "mockServerPort": 1080
 }
 ```
 
-#### For Real API Testing
-```json
-{
-  "baseUrl": "http://localhost:5000",
-  "mockUrl": "http://localhost:1080",
-  "thirdParty": "real",
-  "retries": 0,
-  "sendEmail": false,
-  "recipients": ["mohaidatahmed@gmail.com"]
-}
-```
+### Environment Setup
+1. **Development/CI**: Use `"thirdParty": "mock"` for fast, reliable testing
+2. **Integration Testing**: Use `"thirdParty": "real"` for end-to-end validation
+3. **Local Development**: Switch between modes as needed
 
-### API Data Configuration
+## Mock Setup Strategies
 
-#### Login Data (`ApiDataSchema/Auth/loginData.json`)
-```json
-{
-  "endPoint": "api/Auth/login",
-  "headers": {
-    "accept": "*/*",
-    "Content-Type": "application/json"
-  },
-  "body": {
-    "email": "mohaidatahmed@gmail.com",
-    "password": "Pass123@"
-  }
-}
-```
+### 1. Scenario-Based Mock Setup
 
-#### TopUp Data (`ApiDataSchema/TopUp/TopUp.json`)
-```json
-{
-  "endPoint": "api/TopUp",
-  "headers": {
-    "accept": "*/*",
-    "Content-Type": "application/json"
-  },
-  "body": {
-    "amount": 500
-  }
-}
-```
+Our framework uses scenario-based mock configuration to handle different test cases:
 
-## Usage Examples
-
-### Basic Test Setup
 ```java
-public class AddFundsTest {
-    private static MockServerConfig mockServerConfig;
-
-    @BeforeClass
-    public void setupMockServer() {
-        mockServerConfig = new MockServerConfig();
-        mockServerConfig.startMockServer();
-        mockServerConfig.setupAuthMocks();
-        mockServerConfig.setupTopUpMocks();
-    }
-
-    @AfterClass  
-    public void tearDownMockServer() {
-        if (mockServerConfig != null) {
-            mockServerConfig.stopMockServer();
-        }
+public void setupTopUpTestScenario(String scenario) {
+    switch (scenario.toLowerCase()) {
+        case "success":
+            setupTopUpMocks();
+            break;
+        case "unauthorized":
+            setupTopUpUnauthorizedMocks();
+            break;
+        case "validation":
+            setupTopUpValidationMocks();
+            break;
     }
 }
 ```
 
-### Test Implementation
-```java
-@Test(description = "Add Funds to user Successfully")
-public void addFundsBalance() {
-    AddFundsAPI addFunds = new AddFundsAPI();
-    addFunds.addFunds();
-    
-    // Verify mock was called
-    assertTrue(mockServerConfig.wasEndpointCalled("POST", "/api/TopUp"));
-}
-```
+### 2. Hierarchical Mock Patterns
 
-### Custom Mock for Specific Test
-```java
-@Test(description = "Test insufficient balance scenario")
-public void testInsufficientBalance() {
-    // Setup error scenario mock
-    mockServerConfig.setupTopUpErrorMocks();
-    
-    AddFundsAPI addFunds = new AddFundsAPI();
-    addFunds.addFunds();
-}
-```
+Mocks are organized in order of specificity:
+1. **Exact Match Mocks**: Specific request body and headers
+2. **Pattern-Based Mocks**: Header-only or path-only matching
+3. **Fallback Mocks**: General catch-all responses
 
-### Adding Custom Mock Expectation
-```java
-mockServerConfig.addMockExpectation(
-    request()
-        .withMethod("POST")
-        .withPath("/api/TopUp")
-        .withBody(".*\"amount\"\\s*:\\s*1000.*"),
-    response()
-        .withStatusCode(200)
-        .withBody("{\"status\":\"SUCCESS\",\"amount\":1000}")
-);
-```
+### 3. Mock Categories
+
+#### Authentication Mocks (`setupAuthMocks()`)
+- Valid login scenarios
+- Token generation
+- Authorization header validation
+
+#### TopUp Mocks
+- **Success Scenarios**: Valid requests with proper authorization
+- **Validation Scenarios**: Invalid amounts, non-numeric values
+- **Error Scenarios**: Missing authorization, malformed requests
+
+#### Default Mocks
+- Health check endpoints
+- Common utility endpoints
 
 ## Best Practices
 
-### 1. Mock Organization
-- **Group related mocks** into logical methods (`setupAuthMocks()`, `setupTopUpMocks()`)
-- **Use descriptive names** for mock methods and response builders
-- **Keep mocks simple** but realistic
+### 1. Mock Design Principles
 
-### 2. Response Design
-- **Match real API structure** as closely as possible
-- **Include all required fields** that your tests depend on
-- **Use realistic data** (timestamps, IDs, amounts)
-- **Handle both success and error scenarios**
+#### Exact Body Matching for Reliability
+```java
+// Preferred: Exact matching for predictable behavior
+.withBody(exact("{\"amount\":\"x\"}"))
 
-### 3. Test Structure
-- **Setup mocks in @BeforeClass** for efficiency
-- **Clean up resources in @AfterClass** to prevent port conflicts
-- **Use specific mocks for error testing** rather than modifying global mocks
-- **Add debug logging** when troubleshooting
+// Avoid: Regex patterns that might be too broad
+.withBody(matching(".*amount.*"))
+```
 
-### 4. Maintenance
-- **Update mocks when APIs change** to maintain test relevance
-- **Version control mock configurations** alongside tests
-- **Document mock limitations** and differences from real APIs
-- **Regular review** of mock accuracy vs real API behavior
+#### Handle Path Variations
+```java
+// Always handle both path formats
+.withPath("/api/TopUp")     // With leading slash
+.withPath("api/TopUp")      // Without leading slash
+```
+
+#### Progressive Mock Specificity
+```java
+// Order from most specific to most general
+1. Exact body + specific headers
+2. Header-only matching  
+3. Path-only matching (fallback)
+```
+
+### 2. Mock Lifecycle Management
+
+#### Setup Strategy
+1. **Reset Before Setup**: Always reset existing mocks before adding new ones
+2. **Restore Defaults**: Re-add essential mocks after reset
+3. **Scenario Isolation**: Each test scenario gets clean mock state
+
+```java
+public void setupTopUpValidationMocks() {
+    // Reset and restore essentials
+    if (mockServer != null && mockServer.isRunning()) {
+        mockServer.reset();
+        setupDefaultMocks();
+        setupAuthMocks();
+    }
+    
+    // Add scenario-specific mocks
+    addValidationMocks();
+}
+```
+
+#### Test Class Integration
+```java
+@BeforeClass(alwaysRun = true)
+public void setupMockServer() {
+    if (thirdParty.equalsIgnoreCase("mock")) {
+        mockServerConfig.setupTopUpTestScenario("validation");
+    }
+}
+```
+
+### 3. Response Design
+
+#### Consistent Response Format
+```java
+// Success responses
+{
+  "message": "Account Successfully Topped Up, New Balance is 1500"
+}
+
+// Error responses  
+{
+  "error": "Bad Request - Non-numeric amount"
+}
+
+// Auth responses
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9.mock-token",
+  "status": "success"
+}
+```
+
+#### Realistic Status Codes
+- `200`: Successful operations
+- `400`: Client errors (validation, malformed requests)
+- `401`: Authentication/authorization failures
+- `500`: Server errors (when testing error handling)
+
+### 4. Debug and Monitoring
+
+#### Request Logging
+```java
+public void printRecordedRequests() {
+    var requests = mockServer.retrieveRecordedRequests(null);
+    for (var req : requests) {
+        System.out.println("Method: " + req.getMethod());
+        System.out.println("Path: " + req.getPath());
+        System.out.println("Body: " + req.getBodyAsString());
+    }
+}
+```
+
+#### Endpoint Verification
+```java
+public boolean wasEndpointCalled(String method, String path) {
+    return mockServer.retrieveRecordedRequests(
+        request().withMethod(method).withPath(path)
+    ).length > 0;
+}
+```
+
+## Usage Guidelines
+
+### 1. Adding New API Mocks
+
+When adding support for a new API endpoint:
+
+1. **Create Setup Method**:
+   ```java
+   public void setupNewApiMocks() {
+       // Success scenario
+       addMockExpectation(request().withMethod("POST").withPath("/api/newendpoint"), 
+                         response().withStatusCode(200));
+   }
+   ```
+
+2. **Add Error Scenarios**:
+   ```java
+   public void setupNewApiErrorMocks() {
+       // Various error conditions
+   }
+   ```
+
+3. **Update Scenario Manager**:
+   ```java
+   public void setupNewApiTestScenario(String scenario) {
+       switch (scenario) {
+           case "success": setupNewApiMocks(); break;
+           case "error": setupNewApiErrorMocks(); break;
+       }
+   }
+   ```
+
+### 2. Test Class Implementation
+
+```java
+public class NewApiTest extends ApiTestBase {
+    
+    @BeforeMethod
+    public void setupScenario() {
+        if (thirdParty.equalsIgnoreCase("mock")) {
+            mockServerConfig.setupNewApiTestScenario("success");
+        }
+    }
+    
+    @Test
+    public void testSuccessScenario() {
+        // Test implementation
+    }
+}
+```
+
+### 3. Configuration Management
+
+#### Development Environment
+```json
+{
+  "thirdParty": "mock",
+  "mockServerPort": 1080
+}
+```
+
+#### CI/CD Pipeline
+```json
+{
+  "thirdParty": "mock",
+  "mockServerPort": 1081  // Different port to avoid conflicts
+}
+```
+
+#### Integration Testing
+```json
+{
+  "thirdParty": "real",
+  "baseUrl": "http://staging-api.company.com"
+}
+```
 
 ## Troubleshooting
 
 ### Common Issues and Solutions
 
-#### Issue: JsonPathException - Failed to parse JSON
-**Symptom**: `groovy.json.JsonException: Lexing failed on line: 1, column: 1, while reading 'e'`
-
-**Possible Causes**:
-- Mock server not receiving requests (wrong endpoint path)
-- API class using wrong baseUrl
-- Mock response not matching expected format
+#### 1. Mock Not Matching Requests
+**Symptoms**: Tests failing with unexpected responses or timeouts
 
 **Debug Steps**:
-1. Add debug logging to see actual URLs being called
-2. Check `mockServerConfig.printRecordedRequests()`
-3. Verify endpoint paths match between API data JSON and mocks
-4. Confirm `thirdParty: "mock"` in config
+1. Enable request logging: `mockServerConfig.printRecordedRequests()`
+2. Verify exact request format matches mock expectations
+3. Check path variations (leading slash, case sensitivity)
+4. Validate header matching patterns
 
-#### Issue: No requests reaching mock server
-**Debug Steps**:
-```java
-@Test
-public void debugTest() {
-    System.out.println("Mock server running: " + mockServerConfig.isMockServerRunning());
-    System.out.println("Base URL: " + baseUrl);
-    
-    // Run your test
-    addFunds.addFunds();
-    
-    // Check what requests were received
-    mockServerConfig.printRecordedRequests();
-}
-```
+**Solution**: Use exact matching instead of regex patterns for reliability
 
-#### Issue: Mock not matching request
-**Common Mismatches**:
-- Case sensitivity (`/api/Auth/login` vs `/api/auth/login`)
-- Leading slash (`api/TopUp` vs `/api/TopUp`)
-- Request body format
-- Headers (Content-Type, etc.)
+#### 2. Mock Server Port Conflicts
+**Symptoms**: `java.net.BindException: Address already in use`
 
-**Solution**: Use broader matchers initially, then narrow down
-```java
-// Broad matcher - catches any POST to login
-.withMethod("POST")
-.withPath(".*login.*")
+**Solutions**:
+- Change `mockServerPort` in testConfig.json
+- Ensure proper cleanup with `@AfterSuite` methods
+- Use dynamic port allocation for parallel execution
 
-// Specific matcher - exact path match
-.withMethod("POST") 
-.withPath("/api/Auth/login")
-```
+#### 3. Test Isolation Issues
+**Symptoms**: Tests affecting each other, inconsistent results
 
-### Debugging Techniques
+**Solutions**:
+- Always reset mocks between test classes
+- Use `@BeforeMethod` for scenario-specific setup
+- Implement proper mock lifecycle management
 
-#### 1. Request Logging
-```java
-public void printRecordedRequests() {
-    var requests = mockServer.retrieveRecordedRequests(null);
-    LOGGER.info("Recorded requests count: {}", requests.length);
-    for (var req : requests) {
-        LOGGER.info("Request: {} {} - Body: {}", 
-            req.getMethod(), req.getPath(), req.getBodyAsString());
-    }
-}
-```
+#### 4. Missing Authorization Mocks
+**Symptoms**: 401 errors in mock mode when expecting success
 
-#### 2. Response Verification
-```java
-// In your test
-Response response = // your API call
-System.out.println("Status: " + response.statusCode());
-System.out.println("Body: " + response.asPrettyString());
-```
+**Solutions**:
+- Ensure `setupAuthMocks()` is called after mock reset
+- Verify Authorization header patterns match exactly
+- Check token format expectations
 
-#### 3. Mock Verification
-```java
-// Verify specific endpoint was called
-assertTrue(mockServerConfig.wasEndpointCalled("POST", "/api/Auth/login"));
-```
+### Debug Checklist
+- [ ] Verify `thirdParty` configuration setting
+- [ ] Check mock server startup logs
+- [ ] Review recorded requests vs. expectations
+- [ ] Validate response format matches test expectations
+- [ ] Ensure proper mock reset/setup sequence
 
-## Maintenance
+## Contributing
 
-### Regular Tasks
+### Adding New Mocks
+1. Follow the established naming conventions: `setup[Feature][Scenario]Mocks()`
+2. Always handle both path formats (`/api/endpoint` and `api/endpoint`)
+3. Include comprehensive error scenarios
+4. Add debug logging for troubleshooting
+5. Update this documentation with new patterns
 
-#### 1. API Contract Validation
-- **Monthly**: Compare mock responses with real API responses
-- **On API updates**: Update corresponding mocks
-- **Before releases**: Validate critical path mocks
+### Code Review Guidelines
+- Verify mock isolation between test scenarios
+- Ensure realistic response formats
+- Check for proper cleanup and lifecycle management
+- Validate debug utilities are included
 
-#### 2. Performance Monitoring
-- Monitor mock server startup/shutdown times
-- Track test execution time improvements
-- Identify flaky tests that might indicate mock issues
-
-#### 3. Mock Coverage Review
-- Ensure all API endpoints have corresponding mocks
-- Verify error scenario coverage
-- Document any limitations or differences from real APIs
-
-### Version Control Best Practices
-- Keep mock configurations in version control
-- Tag mock versions with corresponding API versions
-- Document breaking changes in mock behavior
-- Maintain backward compatibility when possible
-
-### Documentation Updates
-- Update this document when adding new mock patterns
-- Document any custom mock utilities or helpers
-- Maintain troubleshooting section with new issues/solutions
-- Keep configuration examples current
+### Testing Your Mocks
+1. Test in both `mock` and `real` modes
+2. Verify all scenario combinations
+3. Check edge cases and error conditions
+4. Validate cleanup and reset functionality
 
 ---
 
-## Appendix
+## Quick Reference
 
-### Dependencies Required
-```xml
-<dependency>
-    <groupId>org.mock-server</groupId>
-    <artifactId>mockserver-netty</artifactId>
-    <version>5.15.0</version>
-</dependency>
-<dependency>
-    <groupId>io.rest-assured</groupId>
-    <artifactId>rest-assured</artifactId>
-    <version>5.5.5</version>
-</dependency>
-```
+### Key Configuration Files
+- `testConfig.json`: Environment and mode configuration
+- `MockServerConfig.java`: Mock server setup and management
+- `TestDataSetBase.java`: Base test configuration and lifecycle
 
-### File Structure
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── config/
-│   │       └── testConfig.json
-│   └── resources/
-│       └── ApiDataSchema/
-│           ├── Auth/
-│           │   └── loginData.json
-│           └── TopUp/
-│               └── TopUp.json
-└── test/
-    └── java/
-        ├── base/
-        │   ├── MockServer/
-        │   │   └── MockServerConfig.java
-        │   └── TestDataBase/
-        │       └── TestDataSetBase.java
-        └── APITests/
-            └── TopUp/
-                └── AddFundsTest.java
-```
+### Essential Methods
+- `setupMockServer()`: Initialize mock server
+- `setupTestScenario(String scenario)`: Configure specific test scenarios
+- `printRecordedRequests()`: Debug request matching issues
+- `resetMockServer()`: Clean slate for new test scenarios
 
-### Contact Information
-- **Framework Owner**: [Your Name]
-- **Documentation Version**: 1.0
-- **Last Updated**: [Current Date]
+### Common Mock Patterns
+- Exact body matching: `.withBody(exact("{\"field\":\"value\"}"))`
+- Header patterns: `.withHeader("Authorization", "Bearer .*")`
+- Path handling: Always include both `/api/path` and `api/path` variants
