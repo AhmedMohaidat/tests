@@ -1,7 +1,0 @@
-{
-  "endPoint": "api/Deposit",
-  "availableEndPoint": "api/Deposit/Available",
-  "headers": {
-    "accept": "*/*",
-  }
-}
