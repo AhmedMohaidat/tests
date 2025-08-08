@@ -6,6 +6,14 @@
         <listener class-name="report.WebTestListener"/>
     </listeners>
 
+<!--    prepare test data-->
+    <test name="Prepare Test Data">
+        <classes>
+            <class name="APITests.Admin.CreateOffersTestData"/>
+        </classes>
+    </test>
+
+
     <!--    Auth APIs-->
     <test name="Login Test">
         <classes>
