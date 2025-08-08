@@ -23,25 +23,58 @@ This document outlines our API mocking strategy using MockServer to enable relia
 
 ## Architecture
 
-### Component Overview
+### Framework Structure Overview
+```
+src/main/java/
+├── base/
+│   ├── APITestBase/ApiTestBase
+│   ├── MockServer/MockServerConfig  
+│   └── TestDataBase/TestDataSetBase
+├── APISchema/ (API Classes)
+│   ├── Admin/
+│   ├── Auth/ 
+│   ├── Deposit/
+│   └── TopUp/
+├── APITests/ (Test Classes)
+│   ├── Admin/
+│   ├── Auth/
+│   ├── Deposit/ 
+│   └── TopUp/
+├── config/testConfig.json
+└── resources/ApiDataSchema/ (Test Data)
+```
+
+### Component Flow
 ```
 TestDataSetBase (Base Configuration)
     ↓
+ApiTestBase (API Test Foundation)  
+    ↓
 MockServerConfig (Mock Management)
     ↓
-API Test Classes (Test Implementation)
+APISchema Classes (API Implementation)
+    ↓
+APITests Classes (Test Execution)
 ```
 
 ### Key Components
 
-#### 1. TestDataSetBase
+#### 1. TestDataSetBase (`base/TestDataBase/`)
 - **Purpose**: Base configuration and mock server lifecycle management
 - **Responsibilities**:
     - Initialize configuration from `testConfig.json`
     - Start/stop mock server based on `thirdParty` setting
     - Manage common test data and utilities
+    - Handle test reporting and logging
 
-#### 2. MockServerConfig
+#### 2. ApiTestBase (`base/APITestBase/`)
+- **Purpose**: Foundation for all API test classes
+- **Responsibilities**:
+    - Inherit mock server configuration
+    - Provide common API testing utilities
+    - Manage test execution context
+
+#### 3. MockServerConfig (`base/MockServer/`)
 - **Purpose**: Centralized mock server configuration and management
 - **Responsibilities**:
     - Mock server startup/shutdown
@@ -49,7 +82,22 @@ API Test Classes (Test Implementation)
     - Request/response pattern definitions
     - Debug utilities for troubleshooting
 
-#### 3. Configuration Switch
+#### 4. APISchema Classes (`APISchema/`)
+- **Purpose**: API implementation and request/response handling
+- **Responsibilities**:
+    - Define API endpoints and methods
+    - Handle request construction
+    - Process API responses
+    - Work with both real and mocked endpoints
+
+#### 5. APITests Classes (`APITests/`)
+- **Purpose**: Test implementation and execution
+- **Responsibilities**:
+    - Define test scenarios and assertions
+    - Use APISchema classes for API calls
+    - Leverage mock configurations for different test scenarios
+
+#### 6. Configuration Management
 Uses `testConfig.json` to control execution mode:
 - `"thirdParty": "real"` → Tests run against real APIs
 - `"thirdParty": "mock"` → Tests run against MockServer
@@ -101,21 +149,98 @@ Mocks are organized in order of specificity:
 2. **Pattern-Based Mocks**: Header-only or path-only matching
 3. **Fallback Mocks**: General catch-all responses
 
-### 3. Mock Categories
+### Framework-Specific Mock Scenarios
 
-#### Authentication Mocks (`setupAuthMocks()`)
-- Valid login scenarios
-- Token generation
-- Authorization header validation
+Based on your API structure, here are the recommended mock scenarios for each module:
 
-#### TopUp Mocks
-- **Success Scenarios**: Valid requests with proper authorization
-- **Validation Scenarios**: Invalid amounts, non-numeric values
-- **Error Scenarios**: Missing authorization, malformed requests
+#### Admin Module Mocks
+```java
+public void setupAdminTestScenario(String scenario) {
+    switch (scenario.toLowerCase()) {
+        case "approve-deposit":
+            setupApproveDepositMocks();
+            break;
+        case "create-offer":
+            setupCreateOfferMocks(); 
+            break;
+        case "delete-offer":
+            setupDeleteOfferMocks();
+            break;
+        case "reject-deposit":
+            setupRejectDepositMocks();
+            break;
+        case "update-offer":
+            setupUpdateOfferMocks();
+            break;
+        case "unauthorized":
+            setupAdminUnauthorizedMocks();
+            break;
+    }
+}
+```
 
-#### Default Mocks
-- Health check endpoints
-- Common utility endpoints
+#### Auth Module Mocks
+```java
+public void setupAuthTestScenario(String scenario) {
+    switch (scenario.toLowerCase()) {
+        case "login-success":
+            setupLoginSuccessMocks();
+            break;
+        case "login-invalid":
+            setupLoginInvalidMocks();
+            break;
+        case "register-success":
+            setupRegisterSuccessMocks();
+            break;
+        case "register-duplicate":
+            setupRegisterDuplicateMocks();
+            break;
+        case "update-user-success":
+            setupUpdateUserMocks();
+            break;
+    }
+}
+```
+
+#### Deposit Module Mocks
+```java
+public void setupDepositTestScenario(String scenario) {
+    switch (scenario.toLowerCase()) {
+        case "available-deposits":
+            setupAvailableDepositsMocks();
+            break;
+        case "crowd-enroll":
+            setupCrowdEnrollMocks();
+            break;
+        case "get-all-deposits":
+            setupGetAllDepositsMocks();
+            break;
+        case "get-deposit-by-id":
+            setupGetDepositByIdMocks();
+            break;
+        case "request-deposit":
+            setupRequestDepositMocks();
+            break;
+    }
+}
+```
+
+#### TopUp Module Mocks (Already Implemented)
+```java
+public void setupTopUpTestScenario(String scenario) {
+    switch (scenario.toLowerCase()) {
+        case "success":
+            setupTopUpMocks();
+            break;
+        case "unauthorized":  
+            setupTopUpUnauthorizedMocks();
+            break;
+        case "validation":
+            setupTopUpValidationMocks();
+            break;
+    }
+}
+```
 
 ## Best Practices
 
@@ -228,51 +353,166 @@ public boolean wasEndpointCalled(String method, String path) {
 
 ## Usage Guidelines
 
-### 1. Adding New API Mocks
+### 1. Adding New API Module Mocks
 
-When adding support for a new API endpoint:
+When adding support for a new API module (e.g., Payments, Notifications):
 
-1. **Create Setup Method**:
+1. **Create Module-Specific Setup Methods**:
    ```java
-   public void setupNewApiMocks() {
-       // Success scenario
-       addMockExpectation(request().withMethod("POST").withPath("/api/newendpoint"), 
-                         response().withStatusCode(200));
+   // In MockServerConfig.java
+   public void setupPaymentMocks() {
+       addMockExpectation(
+           request()
+               .withMethod("POST")
+               .withPath("/api/Payment")
+               .withHeader("Authorization", "Bearer .*"),
+           response()
+               .withStatusCode(200)
+               .withContentType(MediaType.APPLICATION_JSON)
+               .withBody("{\"message\": \"Payment processed successfully\"}")
+       );
    }
-   ```
-
-2. **Add Error Scenarios**:
-   ```java
-   public void setupNewApiErrorMocks() {
-       // Various error conditions
+   
+   public void setupPaymentErrorMocks() {
+       // Various error scenarios
    }
-   ```
-
-3. **Update Scenario Manager**:
-   ```java
-   public void setupNewApiTestScenario(String scenario) {
-       switch (scenario) {
-           case "success": setupNewApiMocks(); break;
-           case "error": setupNewApiErrorMocks(); break;
+   
+   public void setupPaymentTestScenario(String scenario) {
+       switch (scenario.toLowerCase()) {
+           case "success": setupPaymentMocks(); break;
+           case "insufficient-funds": setupPaymentInsufficientFundsMocks(); break;
+           case "invalid-card": setupPaymentInvalidCardMocks(); break;
+           case "unauthorized": setupPaymentUnauthorizedMocks(); break;
        }
    }
    ```
 
-### 2. Test Class Implementation
+2. **Create APISchema Class** (`APISchema/Payment/PaymentAPI.java`):
+   ```java
+   public class PaymentAPI extends ApiTestBase {
+       
+       public void processPayment(String amount, String method) {
+           // Implementation that works with both real and mock APIs
+           Response response = given()
+               .header("Authorization", "Bearer " + getAuthToken())
+               .header("Content-Type", "application/json")
+               .body(buildPaymentRequest(amount, method))
+               .post("/api/Payment");
+               
+           // Handle response
+       }
+   }
+   ```
 
+3. **Create Test Class** (`APITests/Payment/PaymentTest.java`):
+   ```java
+   public class PaymentTest extends ApiTestBase {
+       
+       PaymentAPI paymentAPI;
+       
+       @BeforeMethod
+       public void setupMocks() {
+           if (thirdParty.equalsIgnoreCase("mock")) {
+               mockServerConfig.setupPaymentTestScenario("success");
+           }
+       }
+       
+       @Test(description = "Process payment successfully")
+       public void processPaymentSuccess() {
+           paymentAPI = new PaymentAPI();
+           paymentAPI.processPayment("100.00", "credit_card");
+       }
+       
+       @Test(description = "Payment with insufficient funds")
+       public void paymentInsufficientFunds() {
+           if (thirdParty.equalsIgnoreCase("mock")) {
+               mockServerConfig.setupPaymentTestScenario("insufficient-funds");
+           }
+           
+           paymentAPI = new PaymentAPI();
+           paymentAPI.processPayment("10000.00", "credit_card");
+       }
+   }
+   ```
+
+4. **Add Test Data** (`resources/ApiDataSchema/Payment/`):
+   ```json
+   // PaymentData.json
+   {
+     "validPayment": {
+       "amount": "100.00",
+       "method": "credit_card",
+       "currency": "USD"
+     },
+     "invalidPayment": {
+       "amount": "invalid",
+       "method": "unknown_method"
+     }
+   }
+   ```
+
+### 2. Framework Integration Pattern
+
+Based on your framework structure, here's how to integrate mocks:
+
+#### APISchema Class (`APISchema/TopUp/AddFundsAPI.java`)
 ```java
-public class NewApiTest extends ApiTestBase {
+public class AddFundsAPI extends ApiTestBase {
+    
+    public void addFunds() {
+        // This method works with both real and mock endpoints
+        // The baseUrl is automatically set based on thirdParty config
+        
+        // API implementation that works with both real and mock
+        Response response = given()
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .body(requestBody)
+            .post("/api/TopUp");
+            
+        // Validation logic
+    }
+}
+```
+
+#### Test Class (`APITests/TopUp/AddFundsTest.java`)
+```java
+public class AddFundsTest extends ApiTestBase {
+    
+    AddFundsAPI addFunds;
     
     @BeforeMethod
     public void setupScenario() {
         if (thirdParty.equalsIgnoreCase("mock")) {
-            mockServerConfig.setupNewApiTestScenario("success");
+            // Setup specific scenario for each test method
+            mockServerConfig.setupTopUpTestScenario("success");
         }
     }
     
-    @Test
-    public void testSuccessScenario() {
-        // Test implementation
+    @Test(description = "Add funds to the authenticated user's wallet Successfully")
+    public void addFundsBalance() {
+        addFunds = new AddFundsAPI();
+        addFunds.addFunds();
+    }
+    
+    @Test(description = "Invalid top-up request or amount")  
+    public void invalidData() {
+        if (thirdParty.equalsIgnoreCase("mock")) {
+            mockServerConfig.setupTopUpTestScenario("validation");
+        }
+        
+        addFunds = new AddFundsAPI();
+        // Test with invalid data
+    }
+    
+    @Test(description = "User not authenticated")
+    public void unAuthorizedUser() {
+        if (thirdParty.equalsIgnoreCase("mock")) {
+            mockServerConfig.setupTopUpTestScenario("unauthorized");
+        }
+        
+        addFunds = new AddFundsAPI();
+        // Test without proper authentication
     }
 }
 ```
@@ -375,9 +615,17 @@ public class NewApiTest extends ApiTestBase {
 ## Quick Reference
 
 ### Key Configuration Files
-- `testConfig.json`: Environment and mode configuration
-- `MockServerConfig.java`: Mock server setup and management
-- `TestDataSetBase.java`: Base test configuration and lifecycle
+- `config/testConfig.json`: Environment and mode configuration
+- `base/MockServer/MockServerConfig.java`: Mock server setup and management
+- `base/TestDataBase/TestDataSetBase.java`: Base test configuration and lifecycle
+- `base/APITestBase/ApiTestBase.java`: API test foundation class
+
+### Framework Directory Structure
+- `APISchema/`: API implementation classes (work with both real and mock APIs)
+- `APITests/`: Test execution classes (inherit from ApiTestBase)
+- `resources/ApiDataSchema/`: Test data and JSON schemas organized by module
+- `resources/TestData.Auth/`: Authentication-specific test data
+- `resources/TestSuites/`: Test suite configurations
 
 ### Essential Methods
 - `setupMockServer()`: Initialize mock server
