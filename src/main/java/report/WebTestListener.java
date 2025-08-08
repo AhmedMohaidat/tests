@@ -121,7 +121,7 @@ public class WebTestListener extends TestDataSetBase implements ITestListener {
         return fileName;
     }
 
-    public void LOGWithScreenshot(ITestResult iTestResult, ExtentTest logger, LogStatus status, String TestDescription) throws IOException {
+    public void LOGWithScreenshot(ITestResult iTestResult, ExtentTest logger, LogStatus status, String TestDescription) {
         String Base64StringofScreenshot = "";
         ITestContext context = iTestResult.getTestContext();
         // Uncomment and modify as needed for screenshot functionality
