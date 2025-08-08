@@ -5,6 +5,7 @@ import base.APITestBase.ApiTestBase;
 import helpers.ReadWriteHelper;
 import io.restassured.response.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class RejectDepositAPI extends ApiTestBase {
@@ -13,20 +14,17 @@ public class RejectDepositAPI extends ApiTestBase {
     and use them here, but I don't have access.
      */
 
-    LoginAPI loginAPI;
-
-    private void setRejectOfferData() {
-        loginAPI = new LoginAPI();
+    private void setRejectOfferData(String token, int offerId) {
 
         Map data = ReadWriteHelper.getDataFromJson("src/main/resources/ApiDataSchema/Admin/RejectDeposit.json");
         endPoint = (String) data.get("endPoint");
         headers = (Map) data.get("headers");
         accept = (String) headers.get("accept");
         contentType = (String) headers.get("Content-Type");
-        auth = "Bearer " + loginAPI.submitRequest();
+        auth = "Bearer " + token;
 
         Map body = (Map) data.get("body");
-        body.put("depositId", 2);
+        body.put("depositId", offerId);
         requestBody = returnValueAsString(body);
 
         requestInfo.put("endPoint", endPoint);
@@ -37,10 +35,17 @@ public class RejectDepositAPI extends ApiTestBase {
 
     }
 
-    public void submitRequest() {
-        setRejectOfferData();
+    public Map submitRequest(String token, int offerId) {
+        setRejectOfferData(token, offerId);
         Response response = sendRequest(baseUrl, "PUT", requestInfo);
-        System.out.println(response.statusCode());
-        System.out.println(response.asPrettyString());
+        Map result = new HashMap();
+        try{
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("responseBody", response.asPrettyString());
+        }catch (Exception exception){
+        }
+
+        return result;
     }
 }

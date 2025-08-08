@@ -6,6 +6,7 @@ import helpers.DateHelper;
 import helpers.ReadWriteHelper;
 import io.restassured.response.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ApproveDepositAPI extends ApiTestBase {
@@ -14,12 +15,9 @@ public class ApproveDepositAPI extends ApiTestBase {
     and use them here, but I don't have access.
      */
 
-    LoginAPI loginAPI;
-    DateHelper dateHelper;
+    DateHelper dateHelper = new DateHelper();
 
-    private void setApprovedOfferData() {
-        loginAPI = new LoginAPI();
-        dateHelper = new DateHelper();
+    private void setApprovedOfferData(String token, int offerId) {
         String startDate = dateHelper.generateFutureISODate();
         String maturityDate = dateHelper.generateFutureISODate();
 
@@ -28,10 +26,10 @@ public class ApproveDepositAPI extends ApiTestBase {
         headers = (Map) data.get("headers");
         accept = (String) headers.get("accept");
         contentType = (String) headers.get("Content-Type");
-        auth = "Bearer " + loginAPI.submitRequest();
+        auth = "Bearer " + token;
 
         Map body = (Map) data.get("body");
-        body.put("depositId", 1);
+        body.put("depositId", offerId);
         body.put("startDate", startDate);
         body.put("maturityDate", maturityDate);
         requestBody = returnValueAsString(body);
@@ -44,10 +42,17 @@ public class ApproveDepositAPI extends ApiTestBase {
 
     }
 
-    public void submitRequest() {
-        setApprovedOfferData();
+    public Map submitRequest(String token, int offerId) {
+        setApprovedOfferData(token, offerId);
         Response response = sendRequest(baseUrl, "PUT", requestInfo);
-        System.out.println(response.statusCode());
-        System.out.println(response.asPrettyString());
+        Map result = new HashMap();
+        try{
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("responseBody", response.asPrettyString());
+        }catch (Exception exception){
+        }
+
+        return result;
     }
 }

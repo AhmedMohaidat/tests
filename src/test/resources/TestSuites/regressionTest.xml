@@ -6,6 +6,7 @@
         <listener class-name="report.WebTestListener"/>
     </listeners>
 
+<!--    Auth APIs-->
     <test name="Login Test">
         <classes>
             <class name="APITests.Auth.LoginTest"/>
@@ -21,5 +22,33 @@
             <class name="APITests.Auth.UpdateUserTest"/>
         </classes>
     </test>
+
+<!--    Admin APIs-->
+    <test name="Create Offer Test">
+        <classes>
+            <class name="APITests.Admin.CreateOfferTest"/>
+        </classes>
+    </test>
+    <test name="Update Offer Test">
+        <classes>
+            <class name="APITests.Admin.UpdateOfferTest"/>
+        </classes>
+    </test>
+    <test name="Approve Offer Test">
+        <classes>
+            <class name="APITests.Admin.DeleteOfferTest"/>
+        </classes>
+    </test>
+    <test name="Reject Offer Test">
+        <classes>
+            <class name="APITests.Admin.DeleteOfferTest"/>
+        </classes>
+    </test>
+    <test name="Delete Offer Test">
+        <classes>
+            <class name="APITests.Admin.DeleteOfferTest"/>
+        </classes>
+    </test>
+
 
 </suite>

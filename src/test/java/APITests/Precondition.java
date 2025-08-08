@@ -1,8 +1,6 @@
 package APITests;
 
-import APISchema.Admin.CreateOfferAPI;
-import APISchema.Admin.DeleteOfferAPI;
-import APISchema.Admin.UpdateOfferAPI;
+import APISchema.Admin.*;
 import APISchema.Auth.LoginAPI;
 import APISchema.Deposit.AvailableDepositAPI;
 import base.APITestBase.ApiTestBase;
@@ -16,6 +14,8 @@ public class Precondition extends ApiTestBase {
     protected UpdateOfferAPI updateOffer;
     protected AvailableDepositAPI available;
     protected DeleteOfferAPI deleteOffer;
+    protected ApproveDepositAPI approveDeposit;
+    protected RejectDepositAPI rejectDeposit;
     protected String token;
     protected Map testData;
     protected int offerId;
@@ -27,6 +27,8 @@ public class Precondition extends ApiTestBase {
         updateOffer = new UpdateOfferAPI();
         available = new AvailableDepositAPI();
         deleteOffer = new DeleteOfferAPI();
+        approveDeposit = new ApproveDepositAPI();
+        rejectDeposit = new RejectDepositAPI();
 
         token = loginAPI.submitRequest();
         offerId = (int) available.getFirstOfferId(token).get("offerId");

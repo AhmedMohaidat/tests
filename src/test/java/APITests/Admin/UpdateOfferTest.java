@@ -42,7 +42,7 @@ public class UpdateOfferTest extends Precondition {
         verifyResult(
                 String.valueOf(statusCode),
                 "Status code for '" + result.get("endPoint") + "' should be 401",
-                statusCode == 200
+                statusCode == 401
         );
     }
 
