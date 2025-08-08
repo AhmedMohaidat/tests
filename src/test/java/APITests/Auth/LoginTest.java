@@ -16,6 +16,7 @@ public class LoginTest extends ApiTestBase {
         loginAPI.submitRequest();
         String token = loginAPI.submitRequest();
         Assert.assertTrue(token != null);
+
     }
 
     @Test(description = "Invalid credentials")
