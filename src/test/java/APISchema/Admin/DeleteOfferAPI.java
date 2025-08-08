@@ -1,10 +1,12 @@
 package APISchema.Admin;
 
 import APISchema.Auth.LoginAPI;
+import APITests.Precondition;
 import base.APITestBase.ApiTestBase;
 import helpers.ReadWriteHelper;
 import io.restassured.response.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class DeleteOfferAPI extends ApiTestBase {
@@ -13,20 +15,17 @@ public class DeleteOfferAPI extends ApiTestBase {
     and use them here, but I don't have access.
      */
 
-    LoginAPI loginAPI;
 
-    private void setDeleteOfferData() {
-        loginAPI = new LoginAPI();
-
+    private void setDeleteOfferData(String token, int offerId) {
         Map data = ReadWriteHelper.getDataFromJson("src/main/resources/ApiDataSchema/Admin/DeleteOffer.json");
         endPoint = (String) data.get("endPoint");
         headers = (Map) data.get("headers");
         accept = (String) headers.get("accept");
         contentType = (String) headers.get("Content-Type");
-        auth = "Bearer " + loginAPI.submitRequest();
+        auth = "Bearer " + token;
 
         Map body = (Map) data.get("body");
-        body.put("id", 4);
+        body.put("id", offerId);
         requestBody = returnValueAsString(body);
 
         requestInfo.put("endPoint", endPoint);
@@ -37,10 +36,21 @@ public class DeleteOfferAPI extends ApiTestBase {
 
     }
 
-    public void deleteOffer() {
-        setDeleteOfferData();
-        Response response = sendRequest(baseUrl, "DEL", requestInfo);
-        System.out.println(response.statusCode());
-        System.out.println(response.asPrettyString());
+    public Map deleteOffer(String token, int offerId) {
+        setDeleteOfferData(token, offerId);
+        Response response = sendRequest(
+                baseUrl,
+                "DEL",
+                requestInfo
+        );
+        Map result = new HashMap();
+        try{
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("responseBody", response.asPrettyString());
+        }catch (Exception exception){
+        }
+
+        return result;
     }
 }

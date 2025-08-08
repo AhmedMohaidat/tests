@@ -6,16 +6,16 @@ import helpers.DateHelper;
 import helpers.ReadWriteHelper;
 import io.restassured.response.Response;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class UpdateOfferAPI extends ApiTestBase {
+    DateHelper dateHelper = new DateHelper();
 
-    LoginAPI loginAPI;
-    DateHelper dateHelper;
-
-    private void setUpdateOfferData() {
-        loginAPI = new LoginAPI();
-        dateHelper = new DateHelper();
+    private void setUpdateOfferData(
+            String token,
+            Map offerData
+    ) {
         String startDate = dateHelper.generateFutureISODate();
         String maturityDate = dateHelper.generateFutureISODate();
 
@@ -24,9 +24,11 @@ public class UpdateOfferAPI extends ApiTestBase {
         headers = (Map) data.get("headers");
         accept = (String) headers.get("accept");
         contentType = (String) headers.get("Content-Type");
-        auth = "Bearer " + loginAPI.submitRequest();
+        auth = "Bearer " + token;
 
         Map body = (Map) data.get("body");
+        body.put("amount", offerData.get("amount"));
+        body.put("id", offerData.get("id"));
         body.put("startDate", startDate);
         body.put("maturityDate", maturityDate);
         requestBody = returnValueAsString(body);
@@ -39,10 +41,23 @@ public class UpdateOfferAPI extends ApiTestBase {
 
     }
 
-    public void updateOffer() {
-        setUpdateOfferData();
+    public Map updateOffer(
+            String token,
+            Map offerData
+    ) {
+        setUpdateOfferData(
+                token,
+                offerData
+        );
         Response response = sendRequest(baseUrl, "PUT", requestInfo);
-        System.out.println(response.statusCode());
-        System.out.println(response.asPrettyString());
+        Map result = new HashMap();
+        try{
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("responseBody", response.asPrettyString());
+        }catch (Exception exception){
+        }
+
+        return result;
     }
 }

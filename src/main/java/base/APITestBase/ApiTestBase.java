@@ -11,6 +11,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Optional;
@@ -180,5 +181,14 @@ public class ApiTestBase extends TestDataSetBase {
 
             }
         }
+    }
+
+    public void verifyResult(String actualResult, String expectedResult, boolean condition) {
+        actualResult = "<b><font color=red>" + actualResult + "</b></font>";
+        expectedResult = "<b><font color=green>" + expectedResult + "</b></font>";
+        if (condition) {
+            actualResult = expectedResult;
+        }
+        Assert.assertEquals(actualResult, expectedResult);
     }
 }
