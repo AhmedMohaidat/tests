@@ -16,32 +16,24 @@ on:
           - src/test/resources/TestSuites/regressionTest.xml
           - src/test/resources/TestSuites/smokeTest.xml
           - src/test/resources/TestSuites/authTest.xml
-      api_branch:
-        description: 'API branch to test against'
-        required: false
-        default: 'main'
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the test repository (current repo)
       - name: Checkout test repository
         uses: actions/checkout@v4
         with:
           path: tests
 
-      # Checkout the API repository
       - name: Checkout API repository
         uses: actions/checkout@v4
         with:
-          repository: Modealf/TimeDepositAPI
-          ref: ${{ github.event.inputs.api_branch || 'main' }}
+          repository: your-username/your-api-repo-name  # Change this to your API repo
           path: api
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Setup environments
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -60,76 +52,43 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Build and start the API
       - name: Restore .NET dependencies
         run: dotnet restore
         working-directory: ./api
 
       - name: Build .NET API
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --no-restore
         working-directory: ./api
 
       - name: Start .NET API in background
         run: |
           cd api
-          echo "Starting API..."
-          nohup dotnet run --configuration Release --urls "http://localhost:5000" > ../api.log 2>&1 &
+          nohup dotnet run --urls http://localhost:5000 > ../api.log 2>&1 &
           API_PID=$!
           echo "API_PID=$API_PID" >> $GITHUB_ENV
           echo "Started API with PID: $API_PID"
-          echo "Waiting a moment for API to initialize..."
-          sleep 5
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
-      - name: Wait for API to be ready
+      - name: Wait for API to start
         run: |
-          echo "Waiting for API to start on http://localhost:5000..."
-          max_attempts=60
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt/$max_attempts: Checking API..."
-          
-            # Try different endpoints that might exist
-            if curl -f http://localhost:5000/health >/dev/null 2>&1; then
-              echo "✅ API health endpoint is ready!"
-              break
-            elif curl -f http://localhost:5000 >/dev/null 2>&1; then
-              echo "✅ API root endpoint is ready!"
-              break
-            elif curl -s http://localhost:5000 >/dev/null 2>&1; then
-              echo "✅ API is responding!"
+          echo "Waiting for API to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:5000 >/dev/null 2>&1 || curl -f http://localhost:5000/health >/dev/null 2>&1; then
+              echo "API is ready!"
               break
             fi
-          
-            if [ $attempt -eq $max_attempts ]; then
-              echo "❌ API failed to start after $max_attempts attempts"
-              echo "=== API Logs ==="
-              cat api.log || echo "No API logs found"
-              echo "=== Process List ==="
-              ps aux | grep dotnet || echo "No dotnet processes found"
-              exit 1
-            fi
-          
-            echo "API not ready yet, waiting 2 seconds..."
+            echo "Attempt $i: API not ready yet, waiting..."
             sleep 2
-            attempt=$((attempt + 1))
           done
-          
-          echo "✅ API is ready! Testing connection..."
-          curl -v http://localhost:5000 || echo "API responding but curl failed"
 
-      # Run the tests
       - name: Clean and compile tests
         run: mvn clean compile
         working-directory: ./tests
 
-      - name: Run tests against API
+      - name: Run tests
         run: |
           cd tests
-          echo "Running tests against API at http://localhost:5000"
-          
           if [ "${{ github.event.inputs.test_suite }}" != "" ]; then
             mvn clean install -Dfile="${{ github.event.inputs.test_suite }}"
           else
@@ -139,27 +98,14 @@ jobs:
           BASE_URL: http://localhost:5000
         continue-on-error: true
 
-      # Cleanup and reporting
-      - name: Show API logs
-        if: always()
-        run: |
-          echo "=== API Logs ==="
-          cat api.log || echo "No API logs found"
-          echo "=== API Process Status ==="
-          ps aux | grep dotnet || echo "No dotnet processes found"
-
       - name: Stop .NET API
         if: always()
         run: |
-          echo "Stopping API..."
           if [ ! -z "$API_PID" ]; then
-            echo "Killing API process with PID: $API_PID"
+            echo "Stopping API with PID: $API_PID"
             kill $API_PID || true
           fi
-          
-          # Also kill any remaining dotnet processes
           pkill -f "dotnet run" || true
-          echo "API stopped"
 
       - name: Upload test results
         if: always()
@@ -170,21 +116,3 @@ jobs:
             tests/target/surefire-reports/
             tests/test-output/
           retention-days: 30
-
-      - name: Upload extent reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: extent-reports
-          path: |
-            tests/ExtentReports/
-            tests/reports/
-          retention-days: 30
-
-      - name: Upload API logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-logs
-          path: api.log
-          retention-days: 7
