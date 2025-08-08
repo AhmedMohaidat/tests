@@ -3,20 +3,21 @@ package APISchema.Deposit;
 import APISchema.Auth.LoginAPI;
 import base.APITestBase.ApiTestBase;
 import helpers.ReadWriteHelper;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import net.minidev.json.JSONUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class GetAllDepositsAPI extends ApiTestBase {
 
-    private void setAllDepositsData() {
-        LoginAPI loginAPI = new LoginAPI();
-
+    private void setAllDepositsData(String token) {
         Map data = ReadWriteHelper.getDataFromJson("src/main/resources/ApiDataSchema/Deposit/GetAllDeposit.json");
         endPoint = (String) data.get("endPoint");
         headers = (Map) data.get("headers");
         accept = (String) headers.get("accept");
-        auth = "Bearer " + loginAPI.submitRequest();
+        auth = "Bearer " + token;
 
         requestInfo.put("endPoint", endPoint);
         requestInfo.put("accept", accept);
@@ -24,10 +25,17 @@ public class GetAllDepositsAPI extends ApiTestBase {
 
     }
 
-    public void getAllDeposits() {
-        setAllDepositsData();
+    public Map getAllDeposits(String token) {
+        setAllDepositsData(token);
         Response response = sendRequest(baseUrl, "GET", requestInfo);
-        System.out.println(response.statusCode());
-        System.out.println(response.asPrettyString());
+        JsonPath jsonPath = new JsonPath(response.asPrettyString());
+        Map result = new HashMap();
+        try {
+            result.put("statusCode", response.statusCode());
+            result.put("endPoint", endPoint);
+            result.put("response", jsonPath.getList("response"));
+        } catch (Exception exception) {
+        }
+        return result;
     }
 }

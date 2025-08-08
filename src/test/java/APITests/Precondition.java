@@ -3,6 +3,7 @@ package APITests;
 import APISchema.Admin.*;
 import APISchema.Auth.LoginAPI;
 import APISchema.Deposit.AvailableDepositAPI;
+import APISchema.Deposit.GetAllDepositsAPI;
 import base.APITestBase.ApiTestBase;
 import org.testng.annotations.BeforeMethod;
 
@@ -16,12 +17,14 @@ public class Precondition extends ApiTestBase {
     protected DeleteOfferAPI deleteOffer;
     protected ApproveDepositAPI approveDeposit;
     protected RejectDepositAPI rejectDeposit;
+    protected GetAllDepositsAPI getDeposits;
+
     protected String token;
     protected Map testData;
     protected int offerId;
 
     @BeforeMethod
-    public void precondition(){
+    public void precondition() {
         loginAPI = new LoginAPI();
         create = new CreateOfferAPI();
         updateOffer = new UpdateOfferAPI();
@@ -29,11 +32,26 @@ public class Precondition extends ApiTestBase {
         deleteOffer = new DeleteOfferAPI();
         approveDeposit = new ApproveDepositAPI();
         rejectDeposit = new RejectDepositAPI();
+        getDeposits = new GetAllDepositsAPI();
 
         token = loginAPI.submitRequest();
+    }
+
+    protected void setOfferId() {
         try {
             offerId = (int) available.getFirstOfferId(token).get("offerId");
-        }catch (Exception exception){}
-
+        } catch (Exception exception) {
+            // Handle exception or log if needed
+            System.err.println("Failed to get offerId: " + exception.getMessage());
+        }
     }
+
+    protected int getOfferId() {
+        if (offerId == 0) {
+            setOfferId();
+        }
+        return offerId;
+    }
+
+
 }

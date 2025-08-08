@@ -9,8 +9,11 @@ import java.util.Map;
 public class ApproveDepositTest extends Precondition {
 
 
+
+
     @Test(description = "Approve a custom deposit request successfully")
     public void approveCustomDeposit() {
+        setOfferId();
         Map result = approveDeposit.submitRequest(token, offerId);
         int statusCode = (int) result.get("statusCode");
         String responseBody = (String) result.get("responseBody");
@@ -34,6 +37,7 @@ public class ApproveDepositTest extends Precondition {
 
     @Test(description = "User not authenticated")
     public void unAuthorized() {
+        setOfferId();
         Map result = approveDeposit.submitRequest(null, offerId);
         int statusCode = (int) result.get("statusCode");
 
@@ -46,6 +50,7 @@ public class ApproveDepositTest extends Precondition {
 
     @Test(description = "User does not have admin privileges")
     public void notAdmin() {
+        setOfferId();
         token = (String) loginAPI.submitRequest("").get("token");
 
         Map result = approveDeposit.submitRequest(token, offerId);

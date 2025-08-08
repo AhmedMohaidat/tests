@@ -10,6 +10,7 @@ public class UpdateOfferTest extends Precondition {
 
     @Test(description = "Update an existing crowd deposit offer successfully")
     public void UpdateDepositOffer() {
+        setOfferId();
         testData = new HashMap();
         testData.put("id", offerId);
         testData.put("amount", faker.number().numberBetween(100, 100000));
@@ -32,6 +33,7 @@ public class UpdateOfferTest extends Precondition {
 
     @Test(description = "User not authenticated")
     public void unAuthorized() {
+        setOfferId();
         testData = new HashMap();
         testData.put("id", offerId);
         testData.put("amount", faker.number().numberBetween(100, 100000));
@@ -48,6 +50,7 @@ public class UpdateOfferTest extends Precondition {
 
     @Test(description = "User does not have admin privileges")
     public void notAdmin() {
+        setOfferId();
         testData = new HashMap();
         testData.put("id", offerId);
         testData.put("amount", faker.number().numberBetween(100, 100000));
@@ -66,6 +69,7 @@ public class UpdateOfferTest extends Precondition {
 
     @Test(description = "Offer not found")
     public void notFound() {
+        setOfferId();
         testData = new HashMap();
         testData.put("id", 10000);
         testData.put("amount", faker.number().numberBetween(100, 100000));

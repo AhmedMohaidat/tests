@@ -43,7 +43,7 @@ public class AvailableDepositAPI extends ApiTestBase {
     public Map getFirstOfferId(String token){
         setAvailableData(token);
         Response response = sendRequest(baseUrl, "GET", requestInfo);
-        System.out.println(response.asPrettyString());
+        System.out.println("Response == > " +response.asPrettyString());
         JsonPath jsonPath = new JsonPath(response.asPrettyString());
         Map result = new HashMap();
         try{

@@ -10,6 +10,7 @@ public class DeleteOfferTest extends Precondition {
 
     @Test(description = "Delete a crowd Deposit offer successfully")
     public void deleteDepositOffer() {
+        setOfferId();
         Map result = deleteOffer.deleteOffer(token, offerId);
         int statusCode = (int) result.get("statusCode");
         String responseBody = (String) result.get("responseBody");
@@ -32,6 +33,7 @@ public class DeleteOfferTest extends Precondition {
 
     @Test(description = "User not authenticated")
     public void unAuthorized() {
+        setOfferId();
         Map result = deleteOffer.deleteOffer(null, offerId);
         int statusCode = (int) result.get("statusCode");
 
@@ -44,6 +46,7 @@ public class DeleteOfferTest extends Precondition {
 
     @Test(description = "User does not have admin privileges")
     public void notAdmin() {
+        setOfferId();
         token = (String) loginAPI.submitRequest("").get("token");
 
         Map result = deleteOffer.deleteOffer(token, offerId);

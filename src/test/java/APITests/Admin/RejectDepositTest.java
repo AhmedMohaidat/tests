@@ -10,6 +10,7 @@ public class RejectDepositTest extends Precondition {
 
     @Test(description = "Reject a custom deposit request successfully")
     public void rejectCustomDeposit() {
+        setOfferId();
         Map result = rejectDeposit.submitRequest(token, offerId);
         int statusCode = (int) result.get("statusCode");
         String responseBody = (String) result.get("responseBody");
@@ -33,6 +34,7 @@ public class RejectDepositTest extends Precondition {
 
     @Test(description = "User not authenticated")
     public void unAuthorized() {
+        setOfferId();
         Map result = rejectDeposit.submitRequest(null, offerId);
         int statusCode = (int) result.get("statusCode");
 
@@ -45,6 +47,7 @@ public class RejectDepositTest extends Precondition {
 
     @Test(description = "User does not have admin privileges")
     public void notAdmin() {
+        setOfferId();
         token = (String) loginAPI.submitRequest("").get("token");
 
         Map result = rejectDeposit.submitRequest(token, offerId);
